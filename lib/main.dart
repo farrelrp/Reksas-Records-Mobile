@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reksas_records_mobile/menu.dart';
+import 'package:reksas_records_mobile/screens/menu.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.blue,
         ).copyWith(secondary: Colors.lightBlueAccent[400]),
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           titleTextStyle: appBarTextStyle,
           centerTitle: true,
         ),
