@@ -6,8 +6,8 @@ class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
   final List<ItemHomepage> items = [
-    ItemHomepage("View My Records", Icons.music_note),
-    ItemHomepage("Add Records", Icons.add),
+    ItemHomepage("List Vinyl", Icons.music_note),
+    ItemHomepage("Add Records", Icons.add_circle_outline_rounded),
     ItemHomepage("Logout", Icons.logout),
   ];
 

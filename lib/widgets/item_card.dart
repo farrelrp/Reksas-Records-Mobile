@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:reksas_records_mobile/screens/records_entry.dart';
+import 'package:reksas_records_mobile/screens/vinlyentry_form.dart';
+import 'package:reksas_records_mobile/screens/list_vinyl.dart';
+import 'package:reksas_records_mobile/screens/login.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 class ItemHomepage {
   final String name;
@@ -38,8 +42,41 @@ class ItemCard extends StatelessWidget {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const RecordEntryFormPage(),
+                  builder: (context) => const VinylEntryFormPage(),
                 ));
+          } else if (item.name == "List Vinyl") {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const VinylEntryPage(),
+                ));
+          } else if (item.name == "Logout") {
+            // Get the CookieRequest instance
+            final request = context.read<CookieRequest>();
+            // Call logout asynchronously
+            () async {
+              final response =
+                  await request.logout("http://127.0.0.1:8000/auth/logout/");
+              String message = response["message"];
+              if (context.mounted) {
+                if (response['status']) {
+                  String uname = response["username"];
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("$message Sampai jumpa, $uname."),
+                  ));
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(message),
+                    ),
+                  );
+                }
+              }
+            }();
           }
         },
         // Container untuk menyimpan Icon dan Text
@@ -68,5 +105,4 @@ class ItemCard extends StatelessWidget {
       ),
     );
   }
-
 }

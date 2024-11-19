@@ -236,3 +236,232 @@ Navigator.pushAndRemoveUntil(
 ```dart
 Navigator.popUntil(context, ModalRoute.withName('/'));
 ```
+
+# Tugas 9
+
+## A. Mengapa Harus Menggunakan Model untuk Pengolahan Data JSON
+
+Dengan menggunakan model, kita dapat memastikan beberapa hal berikut:
+**Konsistensi Data**: Menjamin JSON yang diterima atau dikirim sesuai dengan atribut dan tipe yang diharapkan.
+
+**Kemudahan Konversi**: Mempermudah transformasi JSON menjadi objek Dart supaya dapat diolah lebih lanjut.
+
+**Validasi Data**: Memastikan data yang diterima valid dan sesuai dengan model yang diharapkan, sehingga mengurangi kemungkinan error atau kegagalan dalam pengolahan data.
+
+Jika tidak menggunakan model, tidak akan langsung error, tetapi dapat terjadi error karena kita tidak bisa memastikan data yang diterima sesuai dengan yang diharapkan.
+
+## B. Fungsi library http
+
+Secara umum, library http dapat berguna untuk komunikasi antara aplikasi dan server melalui protokol HTTP.
+Pada tugas ini digunakan dalam:
+
+- Autentikasi login dan logout
+
+```dart
+final response = await request.login("http://127.0.0.1:8000/auth/login/", {
+  'username': username,
+  'password': password,
+});
+```
+
+- Pengambilan data dari server
+
+```dart
+final response = await request.get("http://127.0.0.1:8000/json/");
+```
+
+- Pengiriman data ke server
+
+```dart
+final response = await request.post("http://127.0.0.1:8000/json/", {
+  'name': 'Album Name',
+  'artist': 'Artist Name',
+  'genre': 'Genre',
+  'price': 100000,
+  'description': 'Description',
+  'image_url': 'Image URL',
+});
+```
+
+## C. Fungsi dari CookieRequest dan Keperluannya
+
+CookieRequest digunakan untuk mengirim cookie dari aplikasi ke server dan menerima cookie dari server. Ini merupakan salah satu bagian dari package pbp_django_auth yang sudah diinstall sebelumnya.
+Fungsi CookieRequest:
+
+- **Sistem Autentikasi**: Memastikan bahwa request yang dikirim dan response yang diterima sesuai dengan cookie yang dikirim sebelumnya.
+- **Mendukung Stateful Request**: Dapat mendapatkan konteks berupa apakah user sudah login atau belum dan menampilkan screen sesuai dengan status login.
+
+## D. Mekanisme Pengiriman Data
+
+1. **Melakukan Input Data**: User melakukan input data pada halaman form yang ada di records_entry.dart.
+2. **Mengirim Data**: Pengiriman data dari aplikasi ke server menggunakan metode POST. Data yang dikirim berupa JSON yang diubah menjadi string menggunakan method jsonEncode dari package dart:convert.
+
+```dart
+final response = await request.post("http://127.0.0.1:8000/create_vinyl_flutter/", {
+  'name': 'Album Name',
+  'artist': 'Artist Name',
+  'genre': 'Genre',
+  'price': 100000,
+  'description': 'Description',
+  'image_url': 'Image URL',
+});
+```
+
+3. **Pengolahan Data**: Setelah data diterima dari server, akan diproses di server Django di views.py yang sudah didefinisikan sebelumnya. Django lalu mengirim response berupa JSON ke aplikasi.
+4. **Menampilkan Data**: Response yang diterima akan di decode menjadi objek Dart menggunakan model yang sudah didefinisikan sebelumnya dan ditampilkan di halaman list_vinyl.dart
+
+## E. Mekanisme Autentikasi
+
+**Autentikasi Login**
+
+1. **Input**: User melakukan login di halaman `login.dart`. Dengan menginput username dan password, lalu menekan tombol login.
+
+2. **Mengirim Request**: Setelah mengeklik tombol login, aplikasi akan mengirim permintaan ke server menggunakan metode POST.
+
+   ```dart:lib/screens/login.dart: _LoginPageState
+   onPressed: () async {
+     String username = _usernameController.text;
+     String password = _passwordController.text;
+
+     // Mengirim permintaan login ke server
+     final response = await request
+         .login("http://127.0.0.1:8000/auth/login/", {
+       'username': username,
+       'password': password,
+     });
+   }
+   ```
+
+3. **Menangani Respons**: Setelah menerima respons dari server, aplikasi akan memeriksa apakah login berhasil. Jika berhasil, pengguna diarahkan ke halaman utama.
+   ```dart:lib/screens/login.dart: _LoginPageState
+   if (request.loggedIn) {
+     String message = response['message'];
+     String uname = response['username'];
+     if (context.mounted) {
+       Navigator.pushReplacement(
+         context,
+         MaterialPageRoute(builder: (context) => MyHomePage()),
+       );
+       ScaffoldMessenger.of(context)
+         ..hideCurrentSnackBar()
+         ..showSnackBar(
+           SnackBar(
+             content: Text("$message Selamat datang, $uname."),
+           ),
+         );
+     }
+   } else {
+     if (context.mounted) {
+       showDialog(
+         context: context,
+         builder: (context) => AlertDialog(
+           title: const Text('Login Gagal'),
+           content: Text(response['message']),
+           actions: [
+             TextButton(
+               child: const Text('OK'),
+               onPressed: () {
+                 Navigator.pop(context);
+               },
+             ),
+           ],
+         ),
+       );
+     }
+   }
+   ```
+
+**Autentikasi Register**
+
+1. **Input**: User melakukan registrasi di halaman `register.dart` dengan mengisi username, password, dan konfirmasi password.
+
+2. **Mengirim Request**: Setelah mengisi form, aplikasi mengirim permintaan registrasi ke server menggunakan metode POST.
+
+   ```dart:lib/screens/register.dart: _RegisterPageState
+   onPressed: () async {
+     String username = _usernameController.text;
+     String password1 = _passwordController.text;
+     String password2 = _confirmPasswordController.text;
+
+     // Mengirim permintaan registrasi ke server
+     final response = await request.postJson(
+         "http://127.0.0.1:8000/auth/register/",
+         jsonEncode({
+           "username": username,
+           "password1": password1,
+           "password2": password2,
+         }));
+   }
+   ```
+
+3. **Menangani Respons**: Setelah menerima respons, aplikasi akan memeriksa status registrasi. Jika berhasil, pengguna diarahkan ke halaman login.
+   ```dart:lib/screens/register.dart: _RegisterPageState
+   if (response['status'] == 'success') {
+     ScaffoldMessenger.of(context).showSnackBar(
+       const SnackBar(
+         content: Text('Successfully registered!'),
+       ),
+     );
+     Navigator.pushReplacement(
+       context,
+       MaterialPageRoute(builder: (context) => const LoginPage()),
+     );
+   } else {
+     ScaffoldMessenger.of(context).showSnackBar(
+       const SnackBar(
+         content: Text('Failed to register!'),
+       ),
+     );
+   }
+   ```
+   _Jika registrasi berhasil, pengguna akan diarahkan kembali ke halaman login dengan pesan sukses. Jika gagal, snackbar akan menampilkan pesan gagal._
+
+---
+
+**Autentikasi Logout**
+
+1. **Input**: User memilih opsi logout dari menu yang tersedia, misalnya dari `left_drawer.dart` atau `item_card.dart`.
+
+2. **Mengirim Request**: Aplikasi mengirim permintaan logout ke server menggunakan metode POST.
+
+   ```dart:lib/widgets/item_card.dart: ItemCard
+   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+     content: Text("$message Sampai jumpa, $uname."),
+   ));
+   Navigator.pushReplacement(
+     context,
+     MaterialPageRoute(builder: (context) => const LoginPage()),
+   );
+   ```
+
+3. **Menangani Respons**: Setelah logout berhasil, sesi pengguna dihapus dan pengguna diarahkan ke halaman login.
+   ```dart:lib/widgets/item_card.dart: ItemCard
+   if (request.loggedIn) {
+     // Logout berhasil
+     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+       content: Text("$message Sampai jumpa, $uname."),
+     ));
+     Navigator.pushReplacement(
+       context,
+       MaterialPageRoute(builder: (context) => const LoginPage()),
+     );
+   } else {
+     ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(
+         content: Text(message),
+       ),
+     );
+   }
+   ```
+
+## F. Penerapan Checklist
+
+- **1. Mengatur Projek Django** : Melakukan konfigurasi projek Django agar dapat diintegrasikan dengan aplikasi Flutter dengan menambah corsheaders dan memasukkan domain aplikasi Flutter kedalam CORS_ALLOWED_ORIGINS, membuat aplikasi baru untuk autentikasi dan membuat view untuk login, register, dan logout pada aplikasi tersebut, membuat view baru di main untuk handle mengirim data ke server.
+
+- **2. Install library yang dibutuhkan di Flutter** : Menginstall library pbp_django_auth, provider dan http untuk dapat melakukan pengiriman dan penerimaan data dari server.
+
+- **3. Membuat Screens** : Membuat halaman login, register, dan logout di Flutter (Dijelaskan pada Poin E), serta halaman untuk menampilkan data dan form untuk input data di Flutter (Dijelaskan pada Poin D). Pada screen baru ini juga memanggil view yang sudah dibuat di projek Django sebelumnya melalui link yang didefinisikan di urls.py pada projek Django.
+
+- **4. Membuat Model** : Membuat model `Vinyl` pada Django dan menambahkan field yang diperlukan, membuat model tersebut menjadi JSON di views.py, lalu menampilkan data tersebut di Flutter. Membuat model menggunakan website Quicktype.
+
+- **5. Membuat Routing** : Mengatur routing di Flutter agar dapat berpindah-pindah antar halaman dengan benar dengan menggunakan Navigator.push, Navigator.pop, Navigator.pushReplacement, dan Navigator.pushAndRemoveUntil.

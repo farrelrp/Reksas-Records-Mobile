@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:reksas_records_mobile/screens/menu.dart';
-
+import 'package:reksas_records_mobile/screens/login.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -10,24 +12,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const appBarTextStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 30,
-      fontWeight: FontWeight.bold,
-    );
-
-    return MaterialApp(
-      title: 'Reksa Records',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.blue,
-        ).copyWith(secondary: Colors.lightBlueAccent[400]),
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: appBarTextStyle,
-          centerTitle: true,
+    return Provider(
+      create: (_) {
+        CookieRequest request = CookieRequest();
+        return request;
+      },
+      child: MaterialApp(
+        title: 'Reksa Records',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.deepPurple,
+          ).copyWith(secondary: Colors.deepPurple[400]),
         ),
+        home: const LoginPage(),
       ),
-      home: MyHomePage(),
     );
   }
 }
+
